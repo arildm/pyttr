@@ -76,7 +76,7 @@ class Type:
             return 'Don\'t know'
         else: return True
     def create(self):
-        a = gensym('_a')
+        a = gensym('a')
         self.judge(a)
         return a
     def create_hypobj(self):
@@ -136,7 +136,7 @@ class PType(Type):
             return True
         else: return False
     def create(self):
-        e = gensym('_e')
+        e = gensym('e')
         self.judge(e)
         return e
     def subst(self,v,a):
@@ -701,7 +701,7 @@ class KPlusStringType(Type):
         logtype(self)
         return None
     def create(self):
-        a = gensym('_sigma')
+        a = gensym('\sigma')
         self.judge(a)
         return(a)
     def subtype_of(self,T):
@@ -743,7 +743,7 @@ def logtype(x):
         print(show(x)+' is a logical type and cannot learn new conditions')
 Ty.learn_witness_condition = logtype
 def create_method_type(self):
-    a = gensym('_T')
+    a = gensym('T')
     self.judge(a)
     return a
 Ty.create = create_method_type.__get__(Ty, Ty.__class__)#MethodType(create_method_type,Ty,Type)
@@ -752,7 +752,7 @@ Re = Type('Re')
 Re.witness_conditions = [lambda r: isinstance(r,Rec)]
 Re.learn_witness_condition = logtype
 def create_method_rec(self):
-    a = gensym('_r')
+    a = gensym('r')
     self.judge(a)
     return a
 Re.create = create_method_rec.__get__(Re, Re.__class__)#MethodType(create_method_rec,Re,Type)

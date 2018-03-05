@@ -45,7 +45,10 @@ def to_latex(obj):
     if isinstance(obj,str):
         return '\\text{'+obj+'}'
     elif isinstance(obj,list):
-        return '[ '+ ', '.join([to_latex(x) for x in obj])+']'
+        if isinstance(obj[0],list) or isinstance(obj[0], dict) or 'to_latex' in dir(obj[0]):
+            return '\\left[\\begin{array}{rcl} ' + '\\\\\n'.join([to_latex(x) for x in obj]) + '\\end{array}\\right]'
+        else:
+            return '[' + ', '.join([to_latex(x) for x in obj]) + ']'
     elif isinstance(obj,tuple):
         return '\\langle '+ ', '.join([to_latex(x) for x in obj])+'\\rangle'
     elif isinstance(obj,dict):

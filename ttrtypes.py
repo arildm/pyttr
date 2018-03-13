@@ -126,7 +126,7 @@ class PType(Type):
     def show(self):
         return self.comps.pred.name+'('+', '.join([show(x) for x in self.comps.args])+')'
     def to_latex(self):
-        return '\\text{'+self.comps.pred.name.replace('_','\\_')+'}'+'('+', '.join([to_latex(x) for x in self.comps.args])+')'
+        return '\\text{'+self.comps.pred.name+'}'+'('+', '.join([to_latex(x) for x in self.comps.args])+')'
     def validate(self):
         if isinstance(self.comps.pred,Pred) \
                 and len(self.comps.args) == len(self.comps.pred.arity):
@@ -928,7 +928,7 @@ class LazyObj(object):
     def show(self):
         return show(self.oplist)
     def to_latex(self):
-        return to_latex(self.oplist)
+        return ''.join(self.oplist)
 
 class Possibility:
     def __init__(self,name='',d=None):

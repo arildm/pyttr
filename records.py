@@ -95,7 +95,7 @@ class Rec(object):
     #Recursive for future use
     #Needs redefining so as not to be destructive?
     def relabel(self, oldlabel, newlabel):
-        newrec = Rec(self.__dict__)
+        newrec = self.subst(oldlabel, newlabel)
         if oldlabel in newrec.__dict__.keys():
             value = newrec.__dict__[oldlabel]
             newrec.__delattr__(oldlabel)

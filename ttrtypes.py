@@ -431,12 +431,8 @@ class RecType(Type):
     
     #Recursive for future use??            
     def Relabel(self, oldlabel, newlabel, recursive=False):
-        if oldlabel in self.comps.__dict__.keys():
-            value = self.comps.__dict__[oldlabel]
-            self.comps.__delattr__(oldlabel)
-            self.comps.__setattr__(newlabel, value)
-        return
-    
+        self.comps = self.comps.relabel(oldlabel, newlabel)
+
     def subst(self,v,a):
         res = RecType()
         for l in self.comps.__dict__.keys():

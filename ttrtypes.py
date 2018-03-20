@@ -887,9 +887,10 @@ class HypObj(object):
 
 class LazyObj(object):
     def __init__(self,strlist):
+        self.oplist_orig = strlist
         self.oplist = strlist
     def subst(self,v,a):
-        self.oplist = substitute(self.oplist,v,a)
+        self.oplist = substitute(self.oplist_orig,v,a)
         return self.eval()
     def eval(self):
         if isinstance(self.oplist[0],list) and\
@@ -922,9 +923,9 @@ class LazyObj(object):
             print('Unable to compute type of ' + show(self))
             return None
     def show(self):
-        return show(self.oplist)
+        return show(self.oplist_orig)
     def to_latex(self):
-        return to_latex(self.oplist)
+        return to_latex(self.oplist_orig)
 
 class Possibility:
     def __init__(self,name='',d=None):

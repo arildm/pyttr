@@ -353,18 +353,11 @@ class RecType(Type):
         return "{"+s+"}"
     
     def to_latex(self):
-        s = ""
-        for kvp in self.comps.__dict__.items():           
-            if s == "":
-                s = s + kvp[0] + " &:& "
-            else:
-                s = s + "\\\\\n"+kvp[0] + " &:& "
-            
-            if(isinstance(kvp[1], RecType)):
-                 s = s + kvp[1].to_latex()                
-            else:
-                s = s + to_latex(kvp[1]) 
-        return "\\left[\\begin{array}{rcl}\n"+s+"\n\\end{array}\\right]"
+        kvps = []
+        for k, v in self.comps.__dict__.items():
+            k = '_'.join('\\text{' + w.strip('{}') + '}' for w in k.split('_'))
+            kvps.append(k + ' &:& ' + to_latex(v))
+        return "\\left[\\begin{array}{rcl}\n" + '\\\\\n'.join(kvps) + "\n\\end{array}\\right]"
 
     def validate(self):
         if forall(list(self.comps.__dict__.items()),lambda x: CheckField(x,self)) and not self.create_hypobj() == None:

@@ -449,6 +449,24 @@ class RecType(Type):
         self.comps.eval()
         return self
 
+    def flatten(self):
+        res = RecType()
+        for l in self.comps.__dict__.keys():
+            lval = self.comps.__getattribute__(l)
+            if 'eval' in dir(lval):
+                lval = lval.eval()
+            if 'flatten' in dir(lval):
+                rec1 = lval.flatten()
+                relabels = dict((l1, l + '.' + l1) for l1 in rec1.comps.__dict__.keys())
+                for l1 in rec1.comps.__dict__.keys():
+                    val = rec1.comps.__getattribute__(l1)
+                    for a, b in relabels.items():
+                        val = substitute(val, a, b)
+                    res.addfield(l + '.' + l1, val)
+            else:
+                res.addfield(l, lval)
+        return res
+
     def merge(self,T):
         if isinstance(T,RecType):
             res = RecType({})

@@ -125,12 +125,16 @@ class Rec(object):
         res = Rec()
         for l in self.__dict__.keys():
             lval = self.__getattribute__(l)
-            if isinstance(lval,str):
-                res.addfield(l,lval)
-            elif isinstance(lval,Rec):
+            if isinstance(lval,Rec):
                 rec1 = lval.flatten()
+                relabels = dict((l1, l + '.' + l1) for l1 in rec1.__dict__.keys())
                 for l1 in rec1.__dict__.keys():
-                    res.addfield(l+"."+l1,rec1.__getattribute__(l1))
+                    val = rec1.__getattribute__(l1)
+                    for a, b in relabels.items():
+                        val = substitute(val, a, b)
+                    res.addfield(l+"."+l1,val)
+            else:
+                res.addfield(l,lval)
         return res
 
     def unflatten(self):

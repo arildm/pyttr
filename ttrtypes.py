@@ -254,7 +254,7 @@ class FunType(Type):
     def show(self):
         return '('+ self.comps.domain.show() + '->' + self.comps.range.show()+')'
     def to_latex(self):
-        return '\\left(\\begin{array}{rcl}\n'+ self.comps.domain.to_latex() + '->' + self.comps.range.to_latex()+'\n\\end{array}\\right))'
+        return '\\left(\\begin{array}{rcl}\n'+ self.comps.domain.to_latex() + '\\rightarrow ' + self.comps.range.to_latex()+'\n\\end{array}\\right)'
     
     def learn_witness_condition(self,c):
         print('Function types are logical and cannot learn new conditions')

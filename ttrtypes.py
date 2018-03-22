@@ -928,6 +928,8 @@ class LazyObj(object):
                 return self.eval()
             else:
                 return self
+        elif len(self.oplist) == 1:
+            return self.oplist[0]
         else: return self
     def type(self):
         if self.oplist[1] == '@':

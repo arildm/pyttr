@@ -451,18 +451,16 @@ class RecType(Type):
 
     def flatten(self):
         res = RecType()
-        for l in self.comps.__dict__.keys():
-            lval = self.comps.__getattribute__(l)
+        for l, lval in list(self.comps.__dict__.items()):
             if 'eval' in dir(lval):
                 lval = lval.eval()
             if 'flatten' in dir(lval):
                 rec1 = lval.flatten()
-                relabels = dict((l1, l + '.' + l1) for l1 in rec1.comps.__dict__.keys())
-                for l1 in rec1.comps.__dict__.keys():
-                    val = rec1.comps.__getattribute__(l1)
-                    for a, b in relabels.items():
-                        val = substitute(val, a, b)
-                    res.addfield(l + '.' + l1, val)
+                # Add prefix to each sub label. Use Relabel() to include ptype
+                # args etc. Sorting matters to avoid duplicate labels.
+                for k2 in sorted(list(rec1.comps.__dict__.keys()), key=lambda s: -s.count('prev.')):
+                    rec1.Relabel(k2, l + '.' + k2)
+                res = res.merge(rec1)
             else:
                 res.addfield(l, lval)
         return res

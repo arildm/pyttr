@@ -123,16 +123,13 @@ class Rec(object):
                 
     def flatten(self):
         res = Rec()
-        for l in self.__dict__.keys():
-            lval = self.__getattribute__(l)
+        for l, lval in self.__dict__.items():
             if isinstance(lval,Rec):
                 rec1 = lval.flatten()
-                relabels = dict((l1, l + '.' + l1) for l1 in rec1.__dict__.keys())
-                for l1 in rec1.__dict__.keys():
-                    val = rec1.__getattribute__(l1)
-                    for a, b in relabels.items():
-                        val = substitute(val, a, b)
-                    res.addfield(l+"."+l1,val)
+                for k2 in sorted(list(rec1.__dict__.keys()), key=lambda s: -s.count('prev.')):
+                    rec1 = rec1.relabel(k2, l + '.' + k2)
+                for l1, val in rec1.__dict__.items():
+                    res.addfield(l1,val)
             else:
                 res.addfield(l,lval)
         return res

@@ -76,7 +76,7 @@ class Type:
             return 'Don\'t know'
         else: return True
     def create(self):
-        a = gensym('_a')
+        a = gensym('a')
         self.judge(a)
         return a
     def create_hypobj(self):
@@ -126,7 +126,7 @@ class PType(Type):
     def show(self):
         return self.comps.pred.name+'('+', '.join([show(x) for x in self.comps.args])+')'
     def to_latex(self):
-        return '\\text{'+self.comps.pred.name.replace('_','\\_')+'}'+'('+', '.join([to_latex(x) for x in self.comps.args])+')'
+        return '\\text{'+self.comps.pred.name+'}'+'('+', '.join([to_latex(x) for x in self.comps.args])+')'
     def validate(self):
         if isinstance(self.comps.pred,Pred) \
                 and len(self.comps.args) == len(self.comps.pred.arity):
@@ -136,7 +136,7 @@ class PType(Type):
             return True
         else: return False
     def create(self):
-        e = gensym('_e')
+        e = gensym('e')
         self.judge(e)
         return e
     def subst(self,v,a):
@@ -254,7 +254,7 @@ class FunType(Type):
     def show(self):
         return '('+ self.comps.domain.show() + '->' + self.comps.range.show()+')'
     def to_latex(self):
-        return '\\left(\\begin{array}{rcl}\n'+ self.comps.domain.to_latex() + '->' + self.comps.range.to_latex()+'\n\\end{array}\\right))'
+        return '\\left(\\begin{array}{rcl}\n'+ self.comps.domain.to_latex() + '\\rightarrow ' + self.comps.range.to_latex()+'\n\\end{array}\\right)'
     
     def learn_witness_condition(self,c):
         print('Function types are logical and cannot learn new conditions')
@@ -353,18 +353,11 @@ class RecType(Type):
         return "{"+s+"}"
     
     def to_latex(self):
-        s = ""
-        for kvp in self.comps.__dict__.items():           
-            if s == "":
-                s = s + kvp[0] + " &:& "
-            else:
-                s = s + "\\\\\n"+kvp[0] + " &:& "
-            
-            if(isinstance(kvp[1], RecType)):
-                 s = s + kvp[1].to_latex()                
-            else:
-                s = s + to_latex(kvp[1]) 
-        return "\\left[\\begin{array}{rcl}\n"+s+"\n\\end{array}\\right]"
+        kvps = []
+        for k, v in self.comps.__dict__.items():
+            k = '_'.join('\\text{' + w.strip('{}') + '}' for w in k.split('_'))
+            kvps.append(k + ' &:& ' + to_latex(v))
+        return "\\left[\\begin{array}{rcl}\n" + '\\\\\n'.join(kvps) + "\n\\end{array}\\right]"
 
     def validate(self):
         if forall(list(self.comps.__dict__.items()),lambda x: CheckField(x,self)) and not self.create_hypobj() == None:
@@ -713,7 +706,7 @@ class KPlusStringType(Type):
         logtype(self)
         return None
     def create(self):
-        a = gensym('_sigma')
+        a = gensym('\sigma')
         self.judge(a)
         return(a)
     def subtype_of(self,T):
@@ -755,7 +748,7 @@ def logtype(x):
         print(show(x)+' is a logical type and cannot learn new conditions')
 Ty.learn_witness_condition = logtype
 def create_method_type(self):
-    a = gensym('_T')
+    a = gensym('T')
     self.judge(a)
     return a
 Ty.create = create_method_type.__get__(Ty, Ty.__class__)#MethodType(create_method_type,Ty,Type)
@@ -764,7 +757,7 @@ Re = Type('Re')
 Re.witness_conditions = [lambda r: isinstance(r,Rec)]
 Re.learn_witness_condition = logtype
 def create_method_rec(self):
-    a = gensym('_r')
+    a = gensym('r')
     self.judge(a)
     return a
 Re.create = create_method_rec.__get__(Re, Re.__class__)#MethodType(create_method_rec,Re,Type)

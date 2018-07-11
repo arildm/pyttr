@@ -340,34 +340,54 @@ class RecType(Type):
         return self
     def show(self):
         s = ""
-        for kvp in self.comps.__dict__.items():           
+        for k, v in self.fields():
             if s == "":
-                s = s + kvp[0] + " : "
+                s = s + k + " : "
             else:
-                s = s + ", "+kvp[0] + " : "
+                s = s + ", "+ k + " : "
             
-            if(isinstance(kvp[1], RecType)):
-                 s = s + kvp[1].show()                
+            if(isinstance(v, RecType)):
+                 s = s + v.show()
             else:
-                s = s + show(kvp[1]) 
+                s = s + show(v)
         return "{"+s+"}"
     
     def to_latex(self):
         kvps = []
-        for k, v in self.comps.__dict__.items():
+        for k, v in self.fields():
             k = '_'.join('\\text{' + w.strip('{}') + '}' for w in k.split('_'))
             kvps.append(k + ' &:& ' + to_latex(v))
         return "\\left[\\begin{array}{rcl}\n" + '\\\\\n'.join(kvps) + "\n\\end{array}\\right]"
 
     def validate(self):
-        if forall(list(self.comps.__dict__.items()),lambda x: CheckField(x,self)) and not self.create_hypobj() == None:
+        if forall(list(self.fields()),lambda x: CheckField(x,self)) and not self.create_hypobj() == None:
             return True
         else:
             return False
-        
+
+    def copy(self):
+        """Make another copy of a record type."""
+        R = RecType()
+        for k, v in self.fields():
+            if 'copy' in dir(v):
+                v = v.copy()
+            R.addfield(k, v)
+        return R
+
+    def fields(self):
+        """Returns the fields as a list of label-type tuples."""
+        return list(self.comps.__dict__.items())
+
+    def field(self, l):
+        """Get the type of a single field."""
+        return self.comps.__dict__[l]
+
+    def labels(self):
+        """Returns the labels as a list."""
+        return list(self.comps.__dict__.keys())
         
     def addfield(self, label, value):
-        if label in self.comps.__dict__.keys(): 
+        if label in self.labels():
             print("\"" +label + "\"" + " is already a label in this record type")
         else: 
             self.comps.__setattr__(label, value)
@@ -402,8 +422,7 @@ class RecType(Type):
     def create(self):
         res = Rec()
         depfields = RecType()
-        for l in self.comps.__dict__:
-            T = self.comps.__getattribute__(l)
+        for l, T in self.fields():
             if isinstance(T,Type):
                 res.addfield(l,T.in_poss(self.poss).create())
             else: depfields.addfield(l,T)
@@ -412,8 +431,7 @@ class RecType(Type):
     def create_hypobj(self):
         res = Rec()
         depfields = RecType()
-        for l in self.comps.__dict__:
-            T = self.comps.__getattribute__(l)
+        for l, T in self.fields():
             if isinstance(T,Type):
                 res.addfield(l,T.create_hypobj())
             else: depfields.addfield(l,T)
@@ -428,13 +446,13 @@ class RecType(Type):
 
     def subst(self,v,a):
         res = RecType()
-        for l in self.comps.__dict__.keys():
-            if self.comps.__getattribute__(l) == v:
+        for l, T in self.fields():
+            if T == v:
                 res.addfield(l,a)
-            elif isinstance(self.comps.__getattribute__(l),str):
-                res.addfield(l,self.comps.__getattribute__(l))
+            elif isinstance(T,str):
+                res.addfield(l,T)
             else: 
-                res.addfield(l,substitute(self.comps.__getattribute__(l),v,a))
+                res.addfield(l,substitute(T,v,a))
         #print(show(res))
         return res
 
@@ -444,14 +462,14 @@ class RecType(Type):
 
     def flatten(self):
         res = RecType()
-        for l, lval in list(self.comps.__dict__.items()):
+        for l, lval in list(self.fields()):
             if 'eval' in dir(lval):
                 lval = lval.eval()
             if 'flatten' in dir(lval):
                 rec1 = lval.flatten()
                 # Add prefix to each sub label. Use Relabel() to include ptype
                 # args etc. Sorting matters to avoid duplicate labels.
-                for k2 in sorted(list(rec1.comps.__dict__.keys()), key=lambda s: -s.count('prev.')):
+                for k2 in sorted(list(rec1.labels()), key=lambda s: -s.count('prev.')):
                     rec1.Relabel(k2, l + '.' + k2)
                 res = res.merge(rec1)
             else:
@@ -533,7 +551,7 @@ class RecType(Type):
 
 def LabelsRecType(T):
     if isinstance(T, RecType):
-        return T.comps.__dict__.keys()
+        return T.labels()
     else:
         print('LabelsRecType not defined on '+ show(T) +' (not a record type)')
         return None
@@ -546,17 +564,16 @@ def AttValRecType(T,l):
         return None
        
 def RecOfRecType(r,T,M):
-    TypeLabels = [l for l in T.comps.__dict__]
     RecordLabels = [l for l in r.__dict__]
-    if forsome(TypeLabels, lambda l: l not in RecordLabels):
+    if forsome(T.labels(), lambda l: l not in r.labels()):
         return False
-    elif forall(TypeLabels, lambda l: l in RecordLabels and QueryField(l,r,T,M)):
+    elif forall(T.labels(), lambda l: l in r.labels() and QueryField(l,r,T,M)):
         return True
     else:
         return False
 
 def QueryField(l,r,T,M):
-    TInField = T.comps.__getattribute__(l)
+    TInField = T.field(l)
     Obj = r.__getattribute__(l)
     if isinstance(Obj,HypObj):
         M = ''
@@ -601,13 +618,13 @@ def CheckPath(path,RecT):
         else: return True
 
 def ProcessDepFields(depfields,res,rtype,mode='real'):
-    if len(depfields.comps.__dict__) == 0:
+    if len(depfields.fields()) == 0:
         return res
     else:
-        oldlength = len(depfields.comps.__dict__)
+        oldlength = len(depfields.fields())
         todelete = []
-        for l in depfields.comps.__dict__:
-            Resolved = ComputeDepType(res,depfields.comps.__getattribute__(l),rtype.poss)
+        for l, T in depfields.fields():
+            Resolved = ComputeDepType(res,T,rtype.poss)
             #print(show(Resolved))
             if 'not a label' in show(Resolved):  #Is this condition still used?
                 pass
@@ -624,7 +641,7 @@ def ProcessDepFields(depfields,res,rtype,mode='real'):
                     print(mode+' not recognized as option for ProcessDepFields')
         for l in todelete:
             del depfields.comps.__dict__[l]
-        if len(depfields.comps.__dict__) < oldlength:
+        if len(depfields.fields()) < oldlength:
             return ProcessDepFields(depfields,res,rtype,mode)
         else:
             if ttracing('create') or ttracing('create_hypobj'):

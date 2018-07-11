@@ -11,7 +11,7 @@ class Rec(object):
             
     def show(self):
         s = ""
-        for kvp in self.__dict__.items():           
+        for kvp in self.fields():
             if s == "":
                 s = s + kvp[0] + " = "
             else:
@@ -25,13 +25,21 @@ class Rec(object):
         
     def to_latex(self):
         kvps = []
-        for k, v in self.__dict__.items():
+        for k, v in self.fields():
             k = '_'.join('\\text{' + w.strip('{}') + '}' for w in k.split('_'))
             kvps.append(k + ' &=& ' + to_latex(v))
         return "\\left[\\begin{array}{rcl}\n" + '\\\\\n'.join(kvps) + "\n\\end{array}\\right]"
 
+    def fields(self):
+        """Returns the fields as a list of label-value tuples."""
+        return list(self.__dict__.items())
+
+    def labels(self):
+        """Returns the labels as a list."""
+        return list(self.__dict__.keys())
+
     def addfield(self, label, value):
-        if label in self.__dict__.keys(): 
+        if label in self.labels():
             print("\"" +label + "\"" + " is already a label in " +show(self))
         else: 
             self.__setattr__(label, value)
@@ -44,7 +52,7 @@ class Rec(object):
     def addpathl(self, pathl, value):
         if len(pathl) == 1:
             return self.addfield(pathl[0],value)
-        elif pathl[0] in self.__dict__.keys():
+        elif pathl[0] in self.labels():
             val = self.__getattribute__(pathl[0])
             if isinstance(val, Rec):
                 val.addpathl(pathl[1:], value)
@@ -88,7 +96,7 @@ class Rec(object):
     #Needs redefining so as not to be destructive?
     def relabel(self, oldlabel, newlabel):
         newrec = self.subst(oldlabel, newlabel)
-        if oldlabel in newrec.__dict__.keys():
+        if oldlabel in newrec.labels():
             value = newrec.__dict__[oldlabel]
             newrec.__delattr__(oldlabel)
             newrec.__setattr__(newlabel, value)
@@ -96,8 +104,7 @@ class Rec(object):
     
     def subst(self,v,a):
         res = Rec()
-        for l in self.__dict__.keys():
-            lval = self.__getattribute__(l)
+        for l, lval in self.fields():
             if lval == v:
                 res.addfield(l,a)
             elif isinstance(lval,str):
@@ -107,20 +114,19 @@ class Rec(object):
         return res
 
     def eval(self):
-        for l in self.__dict__.keys():
-            lval = self.__getattribute__(l)
+        for l, lval in self.fields():
             if 'eval' in dir(lval):
                 self.__setattr__(l,lval.eval())
         return self
                 
     def flatten(self):
         res = Rec()
-        for l, lval in self.__dict__.items():
+        for l, lval in self.fields():
             if isinstance(lval,Rec):
                 rec1 = lval.flatten()
-                for k2 in sorted(list(rec1.__dict__.keys()), key=lambda s: -s.count('prev.')):
+                for k2 in sorted(list(rec1.labels()), key=lambda s: -s.count('prev.')):
                     rec1 = rec1.relabel(k2, l + '.' + k2)
-                for l1, val in rec1.__dict__.items():
+                for l1, val in rec1.fields():
                     res.addfield(l1,val)
             else:
                 res.addfield(l,lval)
@@ -128,8 +134,8 @@ class Rec(object):
 
     def unflatten(self):
         res = Rec()
-        for l in self.__dict__.keys():
-            res.addpath(l, self.__getattribute__(l))
+        for l, v in self.fields():
+            res.addpath(l, v)
         return res
                 
 

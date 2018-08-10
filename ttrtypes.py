@@ -461,15 +461,16 @@ class RecType(Type):
 
     def flatten(self):
         res = RecType()
-        for l, lval in list(self.fields()):
+        for l, lval in self.fields():
             if 'eval' in dir(lval):
                 lval = lval.eval()
             if 'flatten' in dir(lval):
-                rec1 = lval.flatten()
+                rec1 = lval.copy()
                 # Add prefix to each sub label. Use Relabel() to include ptype
                 # args etc. Sorting matters to avoid duplicate labels.
                 for k2 in sorted(list(rec1.labels()), key=lambda s: -s.count('prev.')):
                     rec1.Relabel(k2, l + '.' + k2)
+                rec1 = rec1.flatten()
                 res = res.merge(rec1)
             else:
                 res.addfield(l, lval)

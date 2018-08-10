@@ -51,11 +51,14 @@ def reduce_path(path):
     return '.'.join((s if n < 2 else '{}^{}'.format(s, n)) for (s, n) in q)
 
 def latex_path(path, text=False):
-    # Enclose parts in {}. prev^2.x_1 -> {prev}^{2}.{x}_{1}
-    path = re.sub(r'([^_^.]+)', r'{\1}', reduce_path(path))
     if text:
+        # Enclose parts in {}. prev^2.x_1 -> {prev}^{2}.{x}_{1}
+        path = re.sub(r'([^_^.]+)', r'{\1}', reduce_path(path))
         # Add \text before {} which are text. {prev}_{1} -> \text{prev}_{1}
         path = re.sub(r'({\w*[A-Za-z]+\w*})', r'\\text\1', path)
+    else:
+        # Only enclose numbers in {}.
+        path = re.sub(r'(^|[_^.])([0-9]+)($|[_^.])', r'\1{\2}\3', reduce_path(path))
     return path
         
 

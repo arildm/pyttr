@@ -39,6 +39,16 @@ def show(obj):
         return obj.show()
     else:
         return str(obj)
+
+def reduce_path(path, latex=False):
+    q = []
+    for s in path.split('.'):
+        if q and q[-1][0] == s:
+            q[-1][1] += 1
+        else:
+            q.append([s, 1])
+    tpl = '{}^{{{}}}' if latex else '{}^{}'
+    return '.'.join((s if n < 2 else tpl.format(s, n)) for (s, n) in q)
         
 
 def to_latex(obj):

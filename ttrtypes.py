@@ -1,6 +1,6 @@
 from collections import deque
 #from types import MethodType
-from utils import gensym, some_condition, forall, forsome, substitute, show, to_latex, showall, ttracing
+from utils import gensym, some_condition, forall, forsome, substitute, show, reduce_path, to_latex, showall, ttracing
 from records import Rec
 
 
@@ -342,9 +342,9 @@ class RecType(Type):
         s = ""
         for k, v in self.fields():
             if s == "":
-                s = s + k + " : "
+                s = s + reduce_path(k) + " : "
             else:
-                s = s + ", "+ k + " : "
+                s = s + ", "+ reduce_path(k) + " : "
             
             if(isinstance(v, RecType)):
                  s = s + v.show()
@@ -355,7 +355,7 @@ class RecType(Type):
     def to_latex(self):
         kvps = []
         for k, v in self.fields():
-            k = '_'.join('\\text{' + w.strip('{}') + '}' for w in k.split('_'))
+            k = '_'.join('\\text{' + w.strip('{}') + '}' for w in reduce_path(k, True).split('_'))
             kvps.append(k + ' &:& ' + to_latex(v))
         return "\\left[\\begin{array}{rcl}\n" + '\\\\\n'.join(kvps) + "\n\\end{array}\\right]"
 

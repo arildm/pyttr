@@ -1,5 +1,5 @@
 from collections import deque
-from utils import show,to_latex,ttracing,substitute
+from utils import show,to_latex,ttracing,substitute,reduce_path,latex_path
 
 class Rec(object):
     def __init__(self,d={}):
@@ -13,9 +13,9 @@ class Rec(object):
         s = ""
         for kvp in self.fields():
             if s == "":
-                s = s + kvp[0] + " = "
+                s = s + reduce_path(kvp[0]) + " = "
             else:
-                s = s + ", "+kvp[0] + " = "
+                s = s + ", "+ reduce_path(kvp[0]) + " = "
             
             if(isinstance(kvp[1], Rec)):
                  s = s + kvp[1].show()                
@@ -26,8 +26,7 @@ class Rec(object):
     def to_latex(self):
         kvps = []
         for k, v in self.fields():
-            k = '_'.join('\\text{' + w.strip('{}') + '}' for w in k.split('_'))
-            kvps.append(k + ' &=& ' + to_latex(v))
+            kvps.append(latex_path(k, True) + ' &=& ' + to_latex(v))
         return "\\left[\\begin{array}{rcl}\n" + '\\\\\n'.join(kvps) + "\n\\end{array}\\right]"
 
     def fields(self):

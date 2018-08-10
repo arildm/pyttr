@@ -1,5 +1,6 @@
 from itertools import count
 from IPython.display import Latex
+import re
 
 gennum = dict()
 
@@ -28,7 +29,7 @@ def forsome(list,cond):
     
 def show(obj):
     if isinstance(obj,str):
-        return obj
+        return reduce_path(obj)
     elif isinstance(obj,list):
         return '['+ ', '.join([show(x) for x in obj])+']'
     elif isinstance(obj,tuple):
@@ -40,20 +41,27 @@ def show(obj):
     else:
         return str(obj)
 
-def reduce_path(path, latex=False):
+def reduce_path(path):
     q = []
     for s in path.split('.'):
         if q and q[-1][0] == s:
             q[-1][1] += 1
         else:
             q.append([s, 1])
-    tpl = '{}^{{{}}}' if latex else '{}^{}'
-    return '.'.join((s if n < 2 else tpl.format(s, n)) for (s, n) in q)
+    return '.'.join((s if n < 2 else '{}^{}'.format(s, n)) for (s, n) in q)
+
+def latex_path(path, text=False):
+    # Enclose parts in {}. prev^2.x_1 -> {prev}^{2}.{x}_{1}
+    path = re.sub(r'([^_^.]+)', r'{\1}', reduce_path(path))
+    if text:
+        # Add \text before {} which are text. {prev}_{1} -> \text{prev}_{1}
+        path = re.sub(r'({\w*[A-Za-z]+\w*})', r'\\text\1', path)
+    return path
         
 
 def to_latex(obj):
     if isinstance(obj,str):
-        return obj
+        return latex_path(obj)
     elif isinstance(obj,list):
         return '[ '+ ', '.join([to_latex(x) for x in obj])+']'
     elif isinstance(obj,tuple):

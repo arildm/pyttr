@@ -468,7 +468,7 @@ class RecType(Type):
                 rec1 = lval.copy()
                 # Add prefix to each sub label. Use Relabel() to include ptype
                 # args etc. Sorting matters to avoid duplicate labels.
-                for k2 in sorted(list(rec1.labels()), key=lambda s: -s.count('prev.')):
+                for k2 in list(rec1.labels()):
                     rec1.Relabel(k2, l + '.' + k2)
                 rec1 = rec1.flatten()
                 res = res.merge(rec1)

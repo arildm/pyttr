@@ -123,7 +123,7 @@ class Rec(object):
         for l, lval in self.fields():
             if isinstance(lval,Rec):
                 rec1 = lval.flatten()
-                for k2 in sorted(list(rec1.labels()), key=lambda s: -s.count('prev.')):
+                for k2 in list(rec1.labels()):
                     rec1 = rec1.relabel(k2, l + '.' + k2)
                 for l1, val in rec1.fields():
                     res.addfield(l1,val)

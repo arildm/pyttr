@@ -170,7 +170,7 @@ class MeetType(Type):
     def show(self):
         return '('+ self.comps.left.show()+'&'+self.comps.right.show()+')'
     def to_latex(self):
-        return '\\left(\\begin{array}{rcl}\n'+ self.comps.left.to_latex()+'\land'+self.comps.right.to_latex()+'\n\\end{array}\\right)'
+        return '\\left(\\begin{array}{rcl}\n'+ self.comps.left.to_latex()+'\\land '+self.comps.right.to_latex()+'\n\\end{array}\\right)'
     def learn_witness_condition(self,c):
         if ttracing('learn_witness_condition'):
             print('Meet types are logical and cannot learn new conditions')
@@ -214,7 +214,7 @@ class JoinType(Type):
     def show(self):
         return '('+ self.comps.left.show()+'v'+self.comps.right.show()+')'
     def to_latex(self):
-        return '\\left(\\begin{array}{rcl}\n'+ self.comps.left.to_latex()+'v'+self.comps.right.to_latex()+'\n\\end{array}\\right)'
+        return '\\left(\\begin{array}{rcl}\n'+ self.comps.left.to_latex()+'\\vee '+self.comps.right.to_latex()+'\n\\end{array}\\right)'
     def learn_witness_condition(self,c):
         print('Join types are logical and cannot learn new conditions')
     def validate(self):
